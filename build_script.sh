@@ -83,34 +83,36 @@ cd "$WORKDIR"
 export TOP_FOLDER=$(pwd)
 
 # -------- UBOOT --------
+if should_build uboot; then
 
-UBOOT_NAME=$(basename -s .git "$UBOOT_REPO_URL")
-UBOOT_DIR="$TOP_FOLDER/$UBOOT_NAME"
-log "Setting up U-Boot: $UBOOT_NAME"
+    UBOOT_NAME=$(basename -s .git "$UBOOT_REPO_URL")
+    UBOOT_DIR="$TOP_FOLDER/$UBOOT_NAME"
+    log "Setting up U-Boot: $UBOOT_NAME"
 
-if [ -d "$UBOOT_DIR/.git" ]; then
-    log "U-Boot repo exists, syncing"
-    cd "$UBOOT_DIR"
-    git fetch origin --tags
+    if [ -d "$UBOOT_DIR/.git" ]; then
+        log "U-Boot repo exists, syncing"
+        cd "$UBOOT_DIR"
+        git fetch origin --tags
 
-    # checkout branch/tag/commit
-    if git show-ref --verify --quiet "refs/remotes/origin/$UBOOT_REF"; then
-        git checkout "$UBOOT_REF"
-        git reset --hard "origin/$UBOOT_REF"
+        # checkout branch/tag/commit
+        if git show-ref --verify --quiet "refs/remotes/origin/$UBOOT_REF"; then
+            git checkout "$UBOOT_REF"
+            git reset --hard "origin/$UBOOT_REF"
+        else
+            git checkout "$UBOOT_REF" -f
+        fi
     else
-        git checkout "$UBOOT_REF" -f
+        log "Cloning U-Boot"
+        git clone "$UBOOT_REPO_URL" "$UBOOT_DIR"
+        cd "$UBOOT_DIR"
+        git fetch origin --tags
+        if git show-ref --verify --quiet "refs/remotes/origin/$UBOOT_REF"; then
+            git checkout "$UBOOT_REF"
+        else
+            git checkout "$UBOOT_REF"
+        fi
+        cd "$TOP_FOLDER"
     fi
-else
-    log "Cloning U-Boot"
-    git clone "$UBOOT_REPO_URL" "$UBOOT_DIR"
-    cd "$UBOOT_DIR"
-    git fetch origin --tags
-    if git show-ref --verify --quiet "refs/remotes/origin/$UBOOT_REF"; then
-        git checkout "$UBOOT_REF"
-    else
-        git checkout "$UBOOT_REF"
-    fi
-    cd "$TOP_FOLDER"
 fi
 
 # -------- ARM TRUSTED FIRMWARE --------
