@@ -12,6 +12,7 @@ error() { echo -e "${RED}[!] $1${NC}"; exit 1; }
 
 
 # -------- LOAD CONFIG --------
+sudo apt-get install dos2unix
 dos2unix configs/*.conf
 
 BUILD_TARGETS="all"
