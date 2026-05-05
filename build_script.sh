@@ -116,25 +116,22 @@ if should_build uboot; then
 fi
 
 # -------- TOOLCHAIN SETUP --------
-
 setup_toolchain() {
 
-    TOOLCHAIN_DIR="$TOOLCHAIN_INSTALL_DIR/$TOOLCHAIN_DIR_NAME"
-    ARCHIVE_PATH="$TOOLCHAIN_INSTALL_DIR/$TOOLCHAIN_ARCHIVE"
+    TOOLCHAIN_DIR="$TOP_FOLDER/$TOOLCHAIN_DIR_NAME"
+    ARCHIVE_PATH="$TOP_FOLDER/$TOOLCHAIN_ARCHIVE"
 
     log "Setting up toolchain..."
 
-    mkdir -p "$TOOLCHAIN_INSTALL_DIR"
+    cd "$TOP_FOLDER" || exit 1
 
-    # ---- Check if already installed ----
+    # ---- Already installed? ----
     if [ -d "$TOOLCHAIN_DIR" ]; then
-        log "Toolchain already installed at $TOOLCHAIN_DIR"
+        log "Toolchain already present: $TOOLCHAIN_DIR"
     else
         log "Toolchain not found. Installing..."
 
-        cd "$TOOLCHAIN_INSTALL_DIR"
-
-        # Download only if archive not present
+        # Download only if needed
         if [ ! -f "$ARCHIVE_PATH" ]; then
             log "Downloading toolchain..."
             wget "$TOOLCHAIN_URL" -O "$ARCHIVE_PATH"
@@ -145,20 +142,18 @@ setup_toolchain() {
         log "Extracting toolchain..."
         tar xf "$ARCHIVE_PATH"
 
-        log "Toolchain installed at $TOOLCHAIN_DIR"
+        log "Installation complete"
     fi
 
-    # ---- Export PATH (idempotent) ----
+    # ---- Export PATH (safe repeat) ----
     export PATH="$TOOLCHAIN_DIR/bin:$PATH"
 
-    # Persist for future sessions
     if ! grep -q "$TOOLCHAIN_DIR/bin" "$TOP_FOLDER/.zephyrrc" 2>/dev/null; then
         echo "export PATH=$TOOLCHAIN_DIR/bin:\$PATH" >> "$TOP_FOLDER/.zephyrrc"
     fi
 }
 
 setup_toolchain
-
 
 # -------- ARM TRUSTED FIRMWARE --------
 if should_build atf; then
